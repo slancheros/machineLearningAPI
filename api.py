@@ -1,0 +1,69 @@
+# Dependencies
+from flask import Flask, request, jsonify
+import model
+import sys
+import traceback
+import pandas as pd
+
+
+# Your API definition
+app = Flask(__name__)
+
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    if lr:
+        try:
+            json_ = request.json
+            print(json_)
+            query = pd.get_dummies(pd.DataFrame(json_))
+            query = query.reindex(columns=model_columns, fill_value=0)
+
+            prediction = list(lr.predict(query))
+
+            return jsonify({'prediction': str(prediction)})
+
+        except BaseException:
+
+            return jsonify({'trace': traceback.format_exc()})
+    else:
+        print('Train the model first')
+        return 'No model here to use'
+
+
+@app.route('/full_predict', methods=['POST'])
+def full_prediction():
+    if lr:
+        try:
+            json_ = request.json
+
+            query = pd.get_dummies(pd.DataFrame(json_))
+            query = query.reindex(columns=model_columns, fill_value=0)
+
+           ## prediction = list(lr.predict(query))
+
+            pre_dict = {row: lr.predict(row) for row in query.keys()}
+
+
+            ##return jsonify({'prediction': str(prediction)})
+            return jsonify({'prediction': str(pre_dict)})
+
+
+        except BaseException:
+
+            return jsonify({'trace': traceback.format_exc()})
+    else:
+        print('Train the model first')
+        return 'No model here to use'
+
+
+if __name__ == '__main__':
+    try:
+        port = int(sys.argv[1]) # This is for a command-line input
+    except BaseException:
+        port = 1234 # If you don't provide any port the port will be set to 12345
+    lr = model.lr
+    print ('Model loaded')
+    model_columns = model.model_columns
+    print ('Model columns loaded')
+    app.run(port=port, debug=True)
