@@ -1,7 +1,6 @@
 # Dependencies
 from flask import Flask, request, jsonify
 from sklearn.externals import joblib
-
 import sys
 import traceback
 import pandas as pd
@@ -10,6 +9,9 @@ import pandas as pd
 # Your API definition
 app = Flask(__name__)
 
+@app.route('/')
+def hello():
+    return "Hola, bienvenidos al API de ML!"
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -17,11 +19,13 @@ def predict():
         try:
             json_ = request.json
             query = pd.get_dummies(pd.DataFrame(json_))
+            print(pd.DataFrame(json_))
+            print(query)
             query = query.reindex(columns=model_columns, fill_value=0)
-
+            print(query)
             prediction = list(lr.predict(query))
-
-            return jsonify({'prediction': str(prediction)})
+            return str(prediction)
+            #return jsonify({'prediction': str(prediction)})
 
         except BaseException:
 
